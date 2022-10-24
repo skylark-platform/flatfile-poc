@@ -1,5 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import { getMutations } from "../hooks/getMutations";
 
 import { useEpisode } from "../hooks/useEpisode";
 
@@ -13,6 +14,8 @@ const Home: NextPage = () => {
 
   // 3rd
   // upload from flatfile to skylark using mutation and matched fields
+
+  const mutations = getMutations();
 
   const fields = useEpisode();
 

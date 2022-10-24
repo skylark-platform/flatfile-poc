@@ -9,25 +9,26 @@ const HARDCODED_OBJECT = "EpisodeInput";
 
 const query = `
 {
-    __type(name: "${HARDCODED_OBJECT}") {
+  __schema {
+    mutationType {
       name
-      kind
       inputFields {
+        description
+        defaultValue
+      }
+      fields {
         name
-        type {
+        args {
           name
-          kind
-          description
-          enumValues{
+          defaultValue
+          type {
             name
-          }
-          ofType {
-            name
-            kind
+            description
           }
         }
       }
     }
+  }
   }
   `;
 
@@ -38,28 +39,21 @@ export const graphQLClient = new GraphQLClient(SAAS_API_ENDPOINT, {
   },
 });
 
-const getEnumTypes = () => {
-  console.log("enum types");
-};
+const parseInputsFromMutations = () => {};
 
-/**
- *
- * @param fields
- * @returns
- *
- * this creates a list of fields from input
- */
-const getFields = (fields: any) => {
-  console.log("fields without filter", fields);
-  return fields?.filter((field) => field?.type?.name != null);
+const listCreateMutations = (fields: any) => {
+  console.log("mutations without filter", fields);
+  return fields?.filter((field) => field?.name.includes("create"));
 };
 
 // RENAME TO GET_FIELDS_FROM_INPUT
-export const useEpisode = () => {
+export const getMutations = () => {
   // const client = new GraphQLClient(endpoint, { headers: {} });
   const data = graphQLClient
     .request(query, {})
-    .then((data) => console.log(getFields(data.__type?.inputFields)));
+    .then((data) =>
+      console.log(listCreateMutations(data.__schema?.mutationType?.fields))
+    );
 
   console.log("final data", data);
   return data;
