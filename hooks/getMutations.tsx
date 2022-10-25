@@ -1,9 +1,4 @@
-import { request, GraphQLClient } from "graphql-request";
-import {
-  SAAS_ACCOUNT_ID,
-  SAAS_API_ENDPOINT,
-  SAAS_API_KEY,
-} from "../skylark/skylark.constants";
+import { graphQLClient } from "../skylark/graphqlClient";
 
 const HARDCODED_OBJECT = "EpisodeInput";
 
@@ -32,17 +27,18 @@ const query = `
   }
   `;
 
-export const graphQLClient = new GraphQLClient(SAAS_API_ENDPOINT, {
-  headers: {
-    "x-api-key": SAAS_API_KEY,
-    "x-account-id": SAAS_ACCOUNT_ID,
-  },
-});
-
-const parseInputsFromMutations = () => {};
+const parseInputsFromMutations = (unparsedList) => {
+  unparsedList.map((item) => {
+    console.log(item?.args?.[0].name);
+    console.log(item?.args?.[0].type.name);
+  });
+};
 
 const listCreateMutations = (fields: any) => {
   console.log("mutations without filter", fields);
+  parseInputsFromMutations(
+    fields?.filter((field) => field?.name.includes("create"))
+  );
   return fields?.filter((field) => field?.name.includes("create"));
 };
 
