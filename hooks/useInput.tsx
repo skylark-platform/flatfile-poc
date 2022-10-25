@@ -1,5 +1,13 @@
 import { graphQLClient } from "../skylark/graphqlClient";
 
+type Types = "String" | "List" | "Int";
+
+type Fields = {
+  name: string;
+  type: string;
+  options?: string[];
+};
+
 const HARDCODED_OBJECT = "EpisodeInput";
 
 const query = `
@@ -26,25 +34,32 @@ const query = `
   }
   `;
 
-const getEnumTypes = () => {
-  console.log("enum types");
+const getEnumTypes: string[] = (enumValues) => {
+  if (!enumValues) return [];
+  return enumValues?.map((value) => value?.name) || [];
 };
 
-/**
- *
- * @param fields
- * @returns
- *
- * this creates a list of fields from input
- */
 const getFields = (fields: any) => {
-  console.log("fields without filter", fields);
+  console.log("fields without filter new", fields);
+
+  const newFields = fields?.map((field) => {
+    return { name: field?.name, type: field?.type?.name };
+  });
+
+  console.log("NEW", newFields);
+
   return fields?.filter((field) => field?.type?.name != null);
 };
 
-// RENAME TO GET_FIELDS_FROM_INPUT
-export const useEpisode = () => {
-  // const client = new GraphQLClient(endpoint, { headers: {} });
+const x = [
+  { name: "Title", type: "string" },
+  { name: "Age", type: "int" },
+  { name: "Type", type: "enum", options: ["Main", "Collection"] },
+];
+
+// RENAME TO GET_FIELDS_FROM_INPUT ?
+// ADD input as an argument ?
+export const useInput = () => {
   const data = graphQLClient
     .request(query, {})
     .then((data) => console.log(getFields(data.__type?.inputFields)));

@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { getMutations } from "../hooks/getMutations";
 
-import { useEpisode } from "../hooks/useEpisode";
+import { useInput } from "../hooks/useInput";
 
 const Home: NextPage = () => {
   // #1st -> Select type (ex: Episode)
@@ -17,7 +17,7 @@ const Home: NextPage = () => {
 
   const mutations = getMutations();
 
-  const fields = useEpisode();
+  const fields = useInput();
 
   return (
     <div>
