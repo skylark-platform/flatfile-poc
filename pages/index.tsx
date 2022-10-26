@@ -27,8 +27,8 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        <div>James Wallis rocks</div>
+      <main className="flex w-screen h-screen justify-center items-center">
+        <p className="text-5xl animate-bounce">James Wallis rocks</p>
       </main>
 
       <div></div>

@@ -16,10 +16,6 @@ const Template: NextPage = () => {
   // 3rd
   // upload from flatfile to skylark using mutation and matched fields
 
-  const mutations = getMutations();
-
-  const fields = useInput();
-
   return (
     <div>
       <Head>
@@ -28,8 +24,8 @@ const Template: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        <button onClick={() => createTemplate()}>Create template</button>
+      <main className="flex w-screen h-screen justify-center items-center">
+        <button className="p-2 px-5 text-white bg-blue-600 rounded" onClick={() => createTemplate()}>Create template</button>
       </main>
 
       <div></div>
