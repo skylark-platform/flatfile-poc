@@ -11,6 +11,7 @@
   "dependencies": {
     "@flatfile/configure": "^0.4.1",
     "@flatfile/sdk": "^2.1.2",
+    "flatfile": "^3.0.3",
     "graphql-request": "^5.0.0",
     "json-to-graphql-query": "^2.2.4",
     "next": "^13.0.0",
