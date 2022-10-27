@@ -45,14 +45,16 @@ interface FlatfileTemplatePropertyPhone extends FlatfileTemplatePropertyValue {
   format: "phone";
 }
 
+type FlatfileTemplateProperty =
+  | FlatfileTemplatePropertyString
+  | FlatfileTemplatePropertyNumber
+  | FlatfileTemplatePropertyBoolean
+  | FlatfileTemplatePropertyEnum
+  | FlatfileTemplatePropertyEmail
+  | FlatfileTemplatePropertyPhone
+
 export interface FlatfileTemplateProperties {
-  [key: string]:
-    | FlatfileTemplatePropertyString
-    | FlatfileTemplatePropertyNumber
-    | FlatfileTemplatePropertyBoolean
-    | FlatfileTemplatePropertyEnum
-    | FlatfileTemplatePropertyEmail
-    | FlatfileTemplatePropertyPhone
+  [key: string]: FlatfileTemplateProperty
 }
 
 export interface FlatfileTemplate {
