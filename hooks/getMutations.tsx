@@ -1,18 +1,34 @@
 import { graphQLClient } from "../skylark/graphqlClient";
 
-const HARDCODED_OBJECT = "EpisodeInput";
+type MutationsListGQL = {
+  name: string;
+  args: {
+    name: string;
+    defaultValue: string | null;
+    type: { name: string; description: string; kind: string | null };
+  }[];
+  type: {
+    name: string;
+    kind: string | null;
+    description: string | null;
+    fields: { name: string }[] | null;
+  };
+}[];
 
 const query = `
 {
   __schema {
     mutationType {
       name
-      inputFields {
-        description
-        defaultValue
-      }
       fields {
         name
+        type {
+          name
+          description
+           fields {
+            name
+           }
+        }
         args {
           name
           defaultValue
@@ -27,30 +43,29 @@ const query = `
   }
   `;
 
-const parseInputsFromMutations = (unparsedList) => {
-  unparsedList.map((item) => {
-    console.log(item?.args?.[0].name);
-    console.log(item?.args?.[0].type.name);
+const parseInputsFromMutations = (unparsedList: MutationsListGQL) => {
+  const test = unparsedList.map((item) => {
+    // TODO change access to [0]
+    return {
+      objectType: item?.args?.[0].name,
+      inputObject: item?.args?.[0].type.name,
+    };
   });
+  console.log("##", test);
+  return test;
 };
 
-const listCreateMutations = (fields: any) => {
-  console.log("mutations without filter", fields);
+const filterCreateMutations = (mutations) => {
+  console.log("mutations without filter", mutations);
   parseInputsFromMutations(
-    fields?.filter((field) => field?.name.includes("create"))
+    mutations?.filter((field) => field?.name.includes("create"))
   );
-  return fields?.filter((field) => field?.name.includes("create"));
+  return mutations?.filter((field) => field?.name.includes("create"));
 };
 
-// RENAME TO GET_FIELDS_FROM_INPUT
 export const getMutations = () => {
-  // const client = new GraphQLClient(endpoint, { headers: {} });
   const data = graphQLClient
     .request(query, {})
-    .then((data) =>
-      console.log(listCreateMutations(data.__schema?.mutationType?.fields))
-    );
-
-  console.log("final data", data);
+    .then((data) => filterCreateMutations(data.__schema?.mutationType?.fields));
   return data;
 };
