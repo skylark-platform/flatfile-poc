@@ -1,3 +1,4 @@
+import { gql } from "graphql-request";
 import { graphQLClient } from "../skylark/graphqlClient";
 
 type MutationsListGQL = {
@@ -15,33 +16,33 @@ type MutationsListGQL = {
   };
 }[];
 
-const query = `
-{
-  __schema {
-    mutationType {
-      name
-      fields {
+const query = gql`
+  {
+    __schema {
+      mutationType {
         name
-        type {
+        fields {
           name
-          description
-           fields {
-            name
-           }
-        }
-        args {
-          name
-          defaultValue
           type {
             name
             description
+            fields {
+              name
+            }
+          }
+          args {
+            name
+            defaultValue
+            type {
+              name
+              description
+            }
           }
         }
       }
     }
   }
-  }
-  `;
+`;
 
 const parseInputsFromMutations = (unparsedList: MutationsListGQL) => {
   const test = unparsedList.map((item) => {
@@ -55,7 +56,7 @@ const parseInputsFromMutations = (unparsedList: MutationsListGQL) => {
   return test;
 };
 
-const filterCreateMutations = (mutations) => {
+const filterCreateMutations = (mutations: MutationsListGQL) => {
   console.log("mutations without filter", mutations);
   parseInputsFromMutations(
     mutations?.filter((field) => field?.name.includes("create"))
@@ -63,7 +64,7 @@ const filterCreateMutations = (mutations) => {
   return mutations?.filter((field) => field?.name.includes("create"));
 };
 
-export const getMutations = () => {
+export const useSkylarkSchema = () => {
   const data = graphQLClient
     .request(query, {})
     .then((data) => filterCreateMutations(data.__schema?.mutationType?.fields));

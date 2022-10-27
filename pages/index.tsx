@@ -1,8 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import { getMutations } from "../hooks/getMutations";
-
-import { useInput } from "../hooks/useInput";
+import { useSkylarkSchema } from "../hooks/useSkylarkSchema";
 
 const Home: NextPage = () => {
   // #1st -> Select type (ex: Episode)
@@ -15,9 +13,7 @@ const Home: NextPage = () => {
   // 3rd
   // upload from flatfile to skylark using mutation and matched fields
 
-  const mutations = getMutations();
-
-  const fields = useInput();
+  const mutations = useSkylarkSchema();
 
   return (
     <div>
