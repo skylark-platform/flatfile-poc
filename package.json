@@ -14,11 +14,13 @@
     "flatfile": "^3.0.3",
     "graphql-request": "^5.0.0",
     "json-to-graphql-query": "^2.2.4",
+    "jsonwebtoken": "^8.5.1",
     "next": "^13.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^8.5.9",
     "@types/node": "18.8.5",
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
