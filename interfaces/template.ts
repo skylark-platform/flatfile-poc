@@ -40,7 +40,7 @@ export interface FlatfileTemplatePropertyEnum
   extends FlatfileTemplatePropertyValue {
   type: "string";
   enum: string[];
-  enumLabel?: string[];
+  enumLabel: string[];
 }
 
 interface FlatfileTemplatePropertyEmail extends FlatfileTemplatePropertyValue {

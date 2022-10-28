@@ -95,10 +95,12 @@ const getProperties = (field: InputFieldGQL) => {
   if (field.name === "type") console.log({ field })
 
   if(field.type.kind === "ENUM") {
+    const enumValues = getEnumTypes(field?.type?.enumValues);
     return {
       label: field?.name,
       type: "string",
-      enum: getEnumTypes(field?.type?.enumValues),
+      enum: enumValues,
+      enumLabel: enumValues,
     } as FlatfileTemplatePropertyEnum;
   }
 
