@@ -10,28 +10,29 @@ import {
   FlatfileTemplatePropertyString,
 } from "../interfaces/template";
 
+type TypeGQL = {
+  kind: string | null;
+  name: string;
+  description: string | null;
+  enumValues: { name: string }[] | null;
+  inputFields: InputFieldGQL[];
+};
+
+type InputValue = {
+  name: string;
+  description: string;
+  type: Pick<TypeGQL, "name" | "kind" | "inputFields" | "description">;
+  defaultValue: string;
+};
+
 type InputFieldGQL = {
   name: string;
-  type: {
-    name: string;
-    kind: string;
-    description: string | null;
-    enumValues: { name: string }[] | null;
-  };
+  type: Pick<TypeGQL, "name" | "kind" | "enumValues" | "description">;
 };
 
 type MutationsListGQL = {
   name: string;
-  args: {
-    name: string;
-    defaultValue: string | null;
-    type: {
-      name: string;
-      description: string;
-      kind: string | null;
-      inputFields: InputFieldGQL[];
-    };
-  }[];
+  args: InputValue[];
   type: {
     name: string;
     kind: string | null;
@@ -91,7 +92,6 @@ const getEnumTypes = (enumValues: { name: string }[] | null) => {
 };
 
 const getProperties = (field: InputFieldGQL) => {
-  // console.log(field.name)
   if (field.name === "type") console.log({ field })
 
   if(field.type.kind === "ENUM") {
@@ -123,11 +123,14 @@ const getProperties = (field: InputFieldGQL) => {
   }
 };
 
-const getTemplateFields = (fields: InputFieldGQL[]): FlatfileTemplateProperties => {
+const getTemplateFields = (
+  fields: InputFieldGQL[]
+): FlatfileTemplateProperties => {
   const newFields: FlatfileTemplateProperties = fields?.reduce(
     (acc, currentValue): FlatfileTemplateProperties => {
-      if (["SCALAR", "ENUM"].includes(currentValue.type.kind)) {
-        const properties: FlatfileTemplateProperty = getProperties(currentValue);
+      if (currentValue.type.kind && ["SCALAR", "ENUM"].includes(currentValue.type.kind)) {
+        const properties: FlatfileTemplateProperty =
+          getProperties(currentValue);
         return {
           ...acc,
           [currentValue?.name]: properties,
@@ -140,16 +143,26 @@ const getTemplateFields = (fields: InputFieldGQL[]): FlatfileTemplateProperties 
   return newFields;
 };
 
-const parseInputsFromMutations = (unparsedList: MutationsListGQL): { objectType: string, inputObject: string, inputFields: FlatfileTemplateProperties }[] => {
-  const test = unparsedList.map((item) => {
-    // TODO change how access [0] getInputObject INPUT_OBJECT
+const getObjectInput = (args: InputValue[]) => {
+  const [first] = args;
+  return args.find((input) => input.type.kind === "INPUT_OBJECT") || first;
+};
+
+const parseInputsFromMutations = (
+  unparsedList: MutationsListGQL
+): {
+  objectType: string;
+  inputObject: string;
+  inputFields: FlatfileTemplateProperties;
+}[] => {
+  return unparsedList.map(({ type, args }) => {
+    const inputValue = getObjectInput(args);
     return {
-      objectType: item?.type?.name,
-      inputObject: item?.args?.[0].type.name,
-      inputFields: getTemplateFields(item?.args?.[0].type.inputFields),
+      objectType: type?.name,
+      inputObject: inputValue.type.name,
+      inputFields: getTemplateFields(inputValue.type.inputFields),
     };
   });
-  return test;
 };
 
 const filterCreateMutations = (mutations: MutationsListGQL) =>
@@ -161,7 +174,13 @@ const parseData = (mutations: MutationsListGQL) => {
 };
 
 export const useSkylarkSchema = () => {
-  const [data, setData] = useState<{ objectType: string, inputObject: string, inputFields: FlatfileTemplateProperties }[]>([]);
+  const [data, setData] = useState<
+    {
+      objectType: string;
+      inputObject: string;
+      inputFields: FlatfileTemplateProperties;
+    }[]
+  >([]);
 
   useEffect(() => {
     graphQLClient
