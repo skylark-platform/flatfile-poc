@@ -2,6 +2,7 @@ import { ITheme } from "@flatfile/sdk";
 import type { NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
+import { useSkylarkSchema } from "../hooks/useSkylarkSchema";
 import { FlatfileTemplate } from "../interfaces/template";
 
 const template: FlatfileTemplate = {
@@ -48,11 +49,11 @@ const openFlatfile = async(embedId: string, importToken: string) => {
   });
 }
 
-const startFlatfileImport = async() => {
+const startFlatfileImport = async(name: string, template: FlatfileTemplate) => {
   const res = await fetch("/api/template", {
     method: "POST",
     body: JSON.stringify({
-      name: "RuiTest",
+      name,
       template
     })
   })
@@ -67,20 +68,21 @@ const startFlatfileImport = async() => {
   await openFlatfile(data.embedId, data.token);
 }
 
-const options = [
-  { label: "Select Skylark object", value: "" },
-  { label: "Episode", value: "episode" },
-  { label: "Themes", value: "themes" },
-  { label: "People", value: "people" },
-]
-
 const Template: NextPage = () => {
-  const [objectType, setObjectType] = useState(options[0].value);
+  const schemaObjects = useSkylarkSchema();
+  const options = schemaObjects.map(({ objectType }) => objectType).sort();
 
-  const disableImport = objectType === "";
-  console.log(objectType, disableImport)
+  const [objectType, setObjectType] = useState("");
+  const objectProperties = schemaObjects.find((obj) => objectType === obj.objectType)?.inputFields;
 
+  const flatfileTemplate: FlatfileTemplate = {
+    type: "object",
+    properties: objectProperties || {},
+    required: [],
+    unique: [],
+  }
 
+  console.log(flatfileTemplate)
   return (
     <div className="flex justify-center">
       <Head>
@@ -101,22 +103,22 @@ const Template: NextPage = () => {
             </ol>
           </div>
           <div className="w-48">
-            {/* <label htmlFor="type" className="block mb-2 text-sm font-medium text-gray-900">Select an option</label> */}
             <select
               id="type"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               onChange={(e) => setObjectType(e.target.value)}
             >
-              {options.map(({ label, value }) => (
-                <option key={`${label}-${value}`} value={value} selected={value === ""}>{label}</option>
+              <option value="" defaultChecked>{`Select Skylark object`}</option>
+              {options.map((objectType) => (
+                <option key={objectType} value={objectType}>{objectType}</option>
               ))}
             </select>
           </div>
           <div className="flex justify-center items-start gap-4 w-20">
             <button
               className="p-2 px-5 text-white bg-[#226dff] rounded disabled:bg-gray-300"
-              disabled={objectType === ""}
-              onClick={startFlatfileImport}
+              disabled={objectType === "" || !objectProperties}
+              onClick={() => objectProperties && startFlatfileImport(objectType, flatfileTemplate)}
             >
               {`Import`}
             </button>

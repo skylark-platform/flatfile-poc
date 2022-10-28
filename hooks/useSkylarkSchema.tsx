@@ -3,6 +3,7 @@ import { gql } from "graphql-request";
 import { graphQLClient } from "../skylark/graphqlClient";
 import {
   FlatfileTemplateProperties,
+  FlatfileTemplateProperty,
   FlatfileTemplatePropertyBoolean,
   FlatfileTemplatePropertyEnum,
   FlatfileTemplatePropertyNumber,
@@ -118,11 +119,11 @@ const getProperties = (field: InputFieldGQL) => {
   }
 };
 
-const getTemplateFields = (fields: InputFieldGQL[]) => {
+const getTemplateFields = (fields: InputFieldGQL[]): FlatfileTemplateProperties => {
   const newFields: FlatfileTemplateProperties = fields?.reduce(
-    (acc, currentValue) => {
+    (acc, currentValue): FlatfileTemplateProperties => {
       if (currentValue.type.kind === ("SCALAR" || "ENUM")) {
-        const properties = getProperties(currentValue);
+        const properties: FlatfileTemplateProperty = getProperties(currentValue);
         return {
           ...acc,
           [currentValue?.name]: properties,
@@ -135,7 +136,7 @@ const getTemplateFields = (fields: InputFieldGQL[]) => {
   return newFields;
 };
 
-const parseInputsFromMutations = (unparsedList: MutationsListGQL) => {
+const parseInputsFromMutations = (unparsedList: MutationsListGQL): { objectType: string, inputObject: string, inputFields: FlatfileTemplateProperties }[] => {
   const test = unparsedList.map((item) => {
     // TODO change how access [0] getInputObject INPUT_OBJECT
     return {
@@ -157,7 +158,7 @@ const parseData = (mutations: MutationsListGQL) => {
 };
 
 export const useSkylarkSchema = () => {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<{ objectType: string, inputObject: string, inputFields: FlatfileTemplateProperties }[]>([]);
 
   useEffect(() => {
     graphQLClient
