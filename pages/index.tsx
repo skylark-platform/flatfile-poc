@@ -15,6 +15,8 @@ const Home: NextPage = () => {
 
   const mutations = useSkylarkSchema();
 
+  console.log("james knows hooks", mutations);
+
   return (
     <div>
       <Head>

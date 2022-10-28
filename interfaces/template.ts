@@ -1,35 +1,43 @@
-export type FlatfileTemplatePropertyTypes = "string" | "number" | "boolean" | "enum";
+export type FlatfileTemplatePropertyTypes =
+  | "string"
+  | "number"
+  | "boolean"
+  | "enum";
 
 interface FlatfileTemplatePropertyValue {
-  type: FlatfileTemplatePropertyTypes
+  type: FlatfileTemplatePropertyTypes;
   label: string;
   // required?: boolean; // Breaks Flatfile
   // unique?: boolean; // Breaks Flatfile
-  default?: string,
-  description?: string
+  default?: string;
+  description?: string;
 }
 
-interface FlatfileTemplatePropertyString extends FlatfileTemplatePropertyValue {
+export interface FlatfileTemplatePropertyString
+  extends FlatfileTemplatePropertyValue {
   type: "string";
   regexp?: {
-    pattern: "regex",
-    flags: string,
-    ignoreBlanks: boolean
-  },
+    pattern: "regex";
+    flags: string;
+    ignoreBlanks: boolean;
+  };
 }
 
-interface FlatfileTemplatePropertyNumber extends FlatfileTemplatePropertyValue {
+export interface FlatfileTemplatePropertyNumber
+  extends FlatfileTemplatePropertyValue {
   type: "number";
   minimum: number;
   maxiumum: number;
 }
 
-interface FlatfileTemplatePropertyBoolean extends FlatfileTemplatePropertyValue {
+export interface FlatfileTemplatePropertyBoolean
+  extends FlatfileTemplatePropertyValue {
   type: "boolean";
   default?: "true" | "false";
 }
 
-interface FlatfileTemplatePropertyEnum extends FlatfileTemplatePropertyValue {
+export interface FlatfileTemplatePropertyEnum
+  extends FlatfileTemplatePropertyValue {
   type: "string";
   enum: string[];
   enumLabel?: string[];
@@ -45,16 +53,16 @@ interface FlatfileTemplatePropertyPhone extends FlatfileTemplatePropertyValue {
   format: "phone";
 }
 
-type FlatfileTemplateProperty =
+export type FlatfileTemplateProperty =
   | FlatfileTemplatePropertyString
   | FlatfileTemplatePropertyNumber
   | FlatfileTemplatePropertyBoolean
   | FlatfileTemplatePropertyEnum
   | FlatfileTemplatePropertyEmail
-  | FlatfileTemplatePropertyPhone
+  | FlatfileTemplatePropertyPhone;
 
 export interface FlatfileTemplateProperties {
-  [key: string]: FlatfileTemplateProperty
+  [key: string]: FlatfileTemplateProperty;
 }
 
 export interface FlatfileTemplate {

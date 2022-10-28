@@ -1,44 +1,6 @@
 import { graphQLClient } from "../skylark/graphqlClient";
 import { FlatfileTemplateProperties } from "../interfaces/template";
 
-/********************** */
-
-type Types = "String" | "List" | "Int";
-
-type Fields = {
-  name: string;
-  type: string;
-  options?: string[];
-};
-
-type TemplateFields = {
-  field: {
-    label: string;
-    type: string;
-    required?: boolean;
-    unique?: boolean;
-    enum?: string[];
-    enumLabel?: string[];
-  };
-};
-
-const x = [
-  { name: "Title", type: "string" },
-  { name: "Age", type: "int" },
-  { name: "Type", type: "enum", options: ["Main", "Collection"] },
-];
-
-const template = {
-  column: {
-    label: "SKU",
-    type: "string",
-    // required?: true,
-    // unique?: true,
-  },
-};
-
-/********************** */
-
 type InputFieldsGQL = {
   name: string;
   type: {

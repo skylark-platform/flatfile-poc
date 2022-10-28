@@ -1,8 +1,15 @@
+import { useEffect, useState } from "react";
 import { gql } from "graphql-request";
 import { graphQLClient } from "../skylark/graphqlClient";
-import { FlatfileTemplateProperties } from "../interfaces/template";
+import {
+  FlatfileTemplateProperties,
+  FlatfileTemplatePropertyBoolean,
+  FlatfileTemplatePropertyEnum,
+  FlatfileTemplatePropertyNumber,
+  FlatfileTemplatePropertyString,
+} from "../interfaces/template";
 
-type InputFieldsGQL = {
+type InputFieldGQL = {
   name: string;
   type: {
     name: string;
@@ -21,7 +28,7 @@ type MutationsListGQL = {
       name: string;
       description: string;
       kind: string | null;
-      inputFields: InputFieldsGQL[];
+      inputFields: InputFieldGQL[];
     };
   }[];
   type: {
@@ -82,36 +89,55 @@ const getEnumTypes = (enumValues: { name: string }[] | null) => {
   return enumValues?.map((value) => value?.name) || [];
 };
 
-const getTemplateFields = (fields: InputFieldsGQL[]) => {
-  console.log("fields without filter new", fields);
+const getProperties = (field: InputFieldGQL) => {
+  switch (field.type.name) {
+    case "String":
+      return {
+        label: field?.name,
+        type: "string",
+      } as FlatfileTemplatePropertyString;
 
+    case "Int":
+      return {
+        label: field?.name,
+        type: "number",
+      } as FlatfileTemplatePropertyNumber;
+
+    case "Boolean":
+      return {
+        label: field?.name,
+        type: "boolean",
+      } as FlatfileTemplatePropertyBoolean;
+
+    default:
+      return {
+        label: field?.name,
+        type: "string",
+        enum: getEnumTypes(field?.type?.enumValues),
+      } as FlatfileTemplatePropertyEnum;
+  }
+};
+
+const getTemplateFields = (fields: InputFieldGQL[]) => {
   const newFields: FlatfileTemplateProperties = fields?.reduce(
-    (acc, currentValue) => ({
-      ...acc,
-      [currentValue?.name]: {
-        label: currentValue?.name,
-        type: currentValue?.type?.name,
-        enum:
-          currentValue?.type?.kind === "ENUM"
-            ? getEnumTypes(currentValue?.type?.enumValues)
-            : [],
-        enumLabel:
-          currentValue?.type?.kind === "ENUM"
-            ? getEnumTypes(currentValue?.type?.enumValues)
-            : [],
-      },
-    }),
+    (acc, currentValue) => {
+      if (currentValue.type.kind === ("SCALAR" || "ENUM")) {
+        const properties = getProperties(currentValue);
+        return {
+          ...acc,
+          [currentValue?.name]: properties,
+        };
+      }
+      return acc;
+    },
     {}
   );
-
-  console.log("good new ##", newFields);
-
   return newFields;
 };
 
 const parseInputsFromMutations = (unparsedList: MutationsListGQL) => {
   const test = unparsedList.map((item) => {
-    // TODO change how access [0]
+    // TODO change how access [0] getInputObject INPUT_OBJECT
     return {
       objectType: item?.type?.name,
       inputObject: item?.args?.[0].type.name,
@@ -122,17 +148,22 @@ const parseInputsFromMutations = (unparsedList: MutationsListGQL) => {
   return test;
 };
 
-const filterCreateMutations = (mutations: MutationsListGQL) => {
-  console.log("mutations without filter", mutations);
-  parseInputsFromMutations(
-    mutations?.filter((mutation) => mutation?.name.includes("create"))
-  );
-  return mutations?.filter((mutation) => mutation?.name.includes("create"));
+const filterCreateMutations = (mutations: MutationsListGQL) =>
+  mutations?.filter((mutation) => mutation?.name.includes("create"));
+
+const parseData = (mutations: MutationsListGQL) => {
+  const filterdMutations = filterCreateMutations(mutations);
+  return parseInputsFromMutations(filterdMutations);
 };
 
 export const useSkylarkSchema = () => {
-  const data = graphQLClient
-    .request(query, {})
-    .then((data) => filterCreateMutations(data.__schema?.mutationType?.fields));
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    graphQLClient
+      .request(query, {})
+      .then((data) => setData(parseData(data.__schema?.mutationType?.fields)));
+  }, []);
+
   return data;
 };
