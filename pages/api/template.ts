@@ -1,14 +1,9 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import jwt from "jsonwebtoken"
-import { createTemplate, createEmbed } from '../../lib/template';
-import { FlatfileTemplate, FlatfileTemplateProperties } from '../../interfaces/template';
-import { FLATFILE_TOKEN } from '../../constants';
-
-// This is a public Embed ID and a private key.
-// Private key should be used to sign a JWT.
-// const EMBED_ID = "YOUR_EMBED_ID";
-// const PRIVATE_KEY = "YOUR_PRIVATE_KEY";
+import { createTemplate, createEmbed } from '../../lib/flatfile/template';
+import { FlatfileTemplate } from '../../interfaces/template';
+import { exchangeFlatfileAccessKey } from '../../lib/flatfile/auth';
 
 interface Data {
   embedId: string
@@ -23,28 +18,55 @@ export default async function handler(
     return res.status(501).end();
   }
 
+  if(!process.env.FLATFILE_ACCESS_KEY_ID || !process.env.FLATFILE_SECRET) {
+    return res.status(500).send("No Flatfile Access Key ID or Flatfile Secret supplied");
+  }
+
+  if(!req.body) {
+    return res.status(400).send("Invalid request body")
+  }
+
   const body = JSON.parse(req.body)
 
-  if(!body.template || !body.name) {
+  if(!body || !body.template || !body.name) {
     return res.status(400).send("Invalid request body")
+  }
+
+  const org = { id: 39821, name: "Skylark" };
+  let user = { id: 0, name: "", email: "" };
+  let flatfileAccessToken = "";
+
+  try {
+    const data = await exchangeFlatfileAccessKey(process.env.FLATFILE_ACCESS_KEY_ID, process.env.FLATFILE_SECRET)
+
+    user = {
+      id: data.user.id,
+      name: data.user.name,
+      email: data.user.email,
+    }
+    flatfileAccessToken = data.accessToken
+
+  } catch(err) {
+    if((err as Error).message) {
+      res.status(500).send((err as Error).message)
+    }
+    return res.status(500).send("Error exchanging Flatfile token")
   }
 
   const name = body.name as string;
   const requestTemplate = body.template as FlatfileTemplate;
 
-  const template = await createTemplate(FLATFILE_TOKEN, name, requestTemplate);
-  const embed = await createEmbed(FLATFILE_TOKEN, name, template.id);
+  const template = await createTemplate(flatfileAccessToken, name, requestTemplate);
+  const embed = await createEmbed(flatfileAccessToken, name, template.id);
 
   const importToken = jwt.sign(
     {
       embed: embed.id,
-      user: { id: 41650, name: "James Wallis", email: "james@skylarkplatform.com" },
-      org: { id: 39821, name: "Skylark" },
+      user,
+      org,
     },
     embed.privateKey.key,
   );
-
-  // Should return the embedID and the token
 
   res.status(200).json({ embedId: embed.id, token: importToken })
 }

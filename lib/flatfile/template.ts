@@ -1,6 +1,6 @@
 import { GraphQLClient, gql } from "graphql-request";
-import { FLATFILE_ENV, FLATFILE_GRAPHQL_URL, FLATFILE_TEAM } from "../constants";
-import { FlatfileTemplate, FlatfileTemplateProperties } from "../interfaces/template";
+import { FLATFILE_ENV, FLATFILE_GRAPHQL_URL, FLATFILE_TEAM } from "../../constants";
+import { FlatfileTemplate, FlatfileTemplateProperties } from "../../interfaces/template";
 
 const environmentId = FLATFILE_ENV.PROD;
 

@@ -91,13 +91,18 @@ const getEnumTypes = (enumValues: { name: string }[] | null) => {
 };
 
 const getProperties = (field: InputFieldGQL) => {
-  switch (field.type.name) {
-    case "String":
-      return {
-        label: field?.name,
-        type: "string",
-      } as FlatfileTemplatePropertyString;
+  // console.log(field.name)
+  if (field.name === "type") console.log({ field })
 
+  if(field.type.kind === "ENUM") {
+    return {
+      label: field?.name,
+      type: "string",
+      enum: getEnumTypes(field?.type?.enumValues),
+    } as FlatfileTemplatePropertyEnum;
+  }
+
+  switch (field.type.name) {
     case "Int":
       return {
         label: field?.name,
@@ -114,15 +119,14 @@ const getProperties = (field: InputFieldGQL) => {
       return {
         label: field?.name,
         type: "string",
-        enum: getEnumTypes(field?.type?.enumValues),
-      } as FlatfileTemplatePropertyEnum;
+      } as FlatfileTemplatePropertyString;
   }
 };
 
 const getTemplateFields = (fields: InputFieldGQL[]): FlatfileTemplateProperties => {
   const newFields: FlatfileTemplateProperties = fields?.reduce(
     (acc, currentValue): FlatfileTemplateProperties => {
-      if (currentValue.type.kind === ("SCALAR" || "ENUM")) {
+      if (["SCALAR", "ENUM"].includes(currentValue.type.kind)) {
         const properties: FlatfileTemplateProperty = getProperties(currentValue);
         return {
           ...acc,
@@ -145,7 +149,6 @@ const parseInputsFromMutations = (unparsedList: MutationsListGQL): { objectType:
       inputFields: getTemplateFields(item?.args?.[0].type.inputFields),
     };
   });
-  console.log("##", test);
   return test;
 };
 
