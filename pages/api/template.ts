@@ -18,7 +18,7 @@ export default async function handler(
     return res.status(501).end();
   }
 
-  if(!process.env.FLATFILE_ACCESS_KEY_ID || !process.env.FLATFILE_SECRET) {
+  if(!process.env.FLATFILE_ACCESS_KEY_ID || !process.env.FLATFILE_SECRET_KEY) {
     return res.status(500).send("No Flatfile Access Key ID or Flatfile Secret supplied");
   }
 
@@ -37,7 +37,7 @@ export default async function handler(
   let flatfileAccessToken = "";
 
   try {
-    const data = await exchangeFlatfileAccessKey(process.env.FLATFILE_ACCESS_KEY_ID, process.env.FLATFILE_SECRET)
+    const data = await exchangeFlatfileAccessKey(process.env.FLATFILE_ACCESS_KEY_ID, process.env.FLATFILE_SECRET_KEY)
 
     user = {
       id: data.user.id,
