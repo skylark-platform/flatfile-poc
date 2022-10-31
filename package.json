@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "vercel:link": "vercel link --project flatfile-integration-poc --scope skylark-platform --yes",
+    "vercel:env": "vercel env pull"
   },
   "dependencies": {
     "@flatfile/configure": "^0.4.1",
