@@ -92,9 +92,7 @@ const getEnumTypes = (enumValues: { name: string }[] | null) => {
 };
 
 const getProperties = (field: InputFieldGQL) => {
-  if (field.name === "type") console.log({ field })
-
-  if(field.type.kind === "ENUM") {
+  if (field.type.kind === "ENUM") {
     const enumValues = getEnumTypes(field?.type?.enumValues);
     return {
       label: field?.name,
@@ -130,7 +128,10 @@ const getTemplateFields = (
 ): FlatfileTemplateProperties => {
   const newFields: FlatfileTemplateProperties = fields?.reduce(
     (acc, currentValue): FlatfileTemplateProperties => {
-      if (currentValue.type.kind && ["SCALAR", "ENUM"].includes(currentValue.type.kind)) {
+      if (
+        currentValue.type.kind &&
+        ["SCALAR", "ENUM"].includes(currentValue.type.kind)
+      ) {
         const properties: FlatfileTemplateProperty =
           getProperties(currentValue);
         return {
@@ -148,6 +149,11 @@ const getTemplateFields = (
 const getObjectInput = (args: InputValue[]) => {
   const [first] = args;
   return args.find((input) => input.type.kind === "INPUT_OBJECT") || first;
+};
+
+const hasObjectInput = (args: InputValue[]) => {
+  const [first] = args;
+  return args.some((input) => input.type.kind === "INPUT_OBJECT");
 };
 
 const parseInputsFromMutations = (
@@ -168,7 +174,16 @@ const parseInputsFromMutations = (
 };
 
 const filterCreateMutations = (mutations: MutationsListGQL) =>
-  mutations?.filter((mutation) => mutation?.name.includes("create"));
+  mutations?.filter(
+    (mutation) =>
+      mutation?.name.includes("create") && hasObjectInput(mutation?.args)
+  );
+
+const filterUpdateMutations = (mutations: MutationsListGQL) =>
+  mutations?.filter(
+    (mutation) =>
+      mutation?.name.includes("update") && hasObjectInput(mutation?.args)
+  );
 
 const parseData = (mutations: MutationsListGQL) => {
   const filterdMutations = filterCreateMutations(mutations);
