@@ -1,9 +1,11 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import jwt from "jsonwebtoken"
-import { createTemplate, createEmbed } from '../../lib/flatfile/create';
+import { createTemplate, createEmbed, updateTemplate, updateEmbed } from '../../lib/flatfile/mutations';
 import { FlatfileTemplate } from '../../interfaces/template';
 import { exchangeFlatfileAccessKey } from '../../lib/flatfile/auth';
+import { getEmbeds, getTemplates } from '../../lib/flatfile/get';
+import { SAAS_ACCOUNT_ID } from '../../constants';
 
 interface Data {
   embedId: string
@@ -53,11 +55,25 @@ export default async function handler(
     return res.status(500).send("Error exchanging Flatfile token")
   }
 
-  const name = body.name as string;
+  const name = `${body.name as string}-${SAAS_ACCOUNT_ID}`.toLowerCase();
   const requestTemplate = body.template as FlatfileTemplate;
 
-  const template = await createTemplate(flatfileAccessToken, name, requestTemplate);
-  const embed = await createEmbed(flatfileAccessToken, name, template.id);
+  const foundTemplates = await getTemplates(flatfileAccessToken, name);
+  const foundEmbeds = await getEmbeds(flatfileAccessToken, name);
+
+  let template;
+  if(foundTemplates.length > 0) {
+    template = await updateTemplate(flatfileAccessToken, foundTemplates[0].id, requestTemplate);
+  } else {
+    template = await createTemplate(flatfileAccessToken, name, requestTemplate);
+  }
+
+  let embed;
+  if(foundEmbeds.length > 0) {
+    embed = await updateEmbed(flatfileAccessToken, foundEmbeds[0].id, [template.id]);
+  } else {
+    embed = await createEmbed(flatfileAccessToken, name, template.id);
+  }
 
   const importToken = jwt.sign(
     {

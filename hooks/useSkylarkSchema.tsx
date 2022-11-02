@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { gql } from "graphql-request";
-import { graphQLClient } from "../skylark/graphqlClient";
+import { skylarkGraphQLClient } from "../lib/graphqlClient";
 import {
   FlatfileTemplateProperties,
   FlatfileTemplateProperty,
@@ -218,7 +218,7 @@ export const useSkylarkSchema = () => {
   const [data, setData] = useState<ParsedGQLObjects>([]);
 
   useEffect(() => {
-    graphQLClient
+    skylarkGraphQLClient
       .request(query, {})
       .then((data) => setData(parseData(data.__schema?.mutationType?.fields)));
   }, []);
