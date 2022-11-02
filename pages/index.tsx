@@ -73,12 +73,12 @@ const Template: NextPage = () => {
   const options = schemaObjects.map(({ objectType }) => objectType).sort();
 
   const [objectType, setObjectType] = useState("");
-  const objectProperties = schemaObjects.find((obj) => objectType === obj.objectType)?.inputFields;
+  const objectInput = schemaObjects.find((obj) => objectType === obj.objectType)?.input;
 
   const flatfileTemplate: FlatfileTemplate = {
     type: "object",
-    properties: objectProperties || {},
-    required: [],
+    properties: objectInput?.fields || {},
+    required: objectInput?.requiredFields || [],
     unique: [],
   }
 
@@ -117,8 +117,8 @@ const Template: NextPage = () => {
           <div className="flex justify-center items-start gap-4 w-20">
             <button
               className="p-2 px-5 text-white bg-[#226dff] rounded disabled:bg-gray-300"
-              disabled={objectType === "" || !objectProperties}
-              onClick={() => objectProperties && startFlatfileImport(objectType, flatfileTemplate)}
+              disabled={objectType === "" || !objectInput}
+              onClick={() => objectInput && startFlatfileImport(objectType, flatfileTemplate)}
             >
               {`Import`}
             </button>

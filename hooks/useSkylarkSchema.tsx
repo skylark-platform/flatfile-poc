@@ -10,12 +10,15 @@ import {
   FlatfileTemplatePropertyString,
 } from "../interfaces/template";
 
+type Kind = "SCALAR" | "LIST" | "NON_NULL" | "ENUM" | "INPUT_OBJECT"
+
 type TypeGQL = {
-  kind: string | null;
+  kind: Kind | null;
   name: string;
   description: string | null;
   enumValues: { name: string }[] | null;
   inputFields: InputFieldGQL[];
+  ofType: Pick<TypeGQL, "name" | "kind"> | null;
 };
 
 type InputValue = {
@@ -27,7 +30,7 @@ type InputValue = {
 
 type InputFieldGQL = {
   name: string;
-  type: Pick<TypeGQL, "name" | "kind" | "enumValues" | "description">;
+  type: Pick<TypeGQL, "name" | "kind" | "enumValues" | "description" | "ofType">;
 };
 
 type MutationsListGQL = {
@@ -35,11 +38,23 @@ type MutationsListGQL = {
   args: InputValue[];
   type: {
     name: string;
-    kind: string | null;
+    kind: Kind | null;
     description: string | null;
     fields: { name: string }[] | null;
+    ofType: string;
   };
 }[];
+
+type ParsedGQLObjects = {
+  objectType: string;
+  input: {
+    name: string,
+    fields: FlatfileTemplateProperties,
+    requiredFields: string[]
+  }
+}[]
+
+const supportedKinds: Kind[] = ["ENUM", "SCALAR", "NON_NULL"];
 
 const query = gql`
   {
@@ -102,7 +117,10 @@ const getProperties = (field: InputFieldGQL) => {
     } as FlatfileTemplatePropertyEnum;
   }
 
-  switch (field.type.name) {
+  // When the type is NON_NULL, the type name is in ofType
+  const fieldName = field.type.kind === "NON_NULL" && field.type.ofType ? field.type.ofType.name : field.type.name;
+
+  switch (fieldName) {
     case "Int":
       return {
         label: field?.name,
@@ -130,7 +148,7 @@ const getTemplateFields = (
     (acc, currentValue): FlatfileTemplateProperties => {
       if (
         currentValue.type.kind &&
-        ["SCALAR", "ENUM"].includes(currentValue.type.kind)
+        supportedKinds.includes(currentValue.type.kind)
       ) {
         const properties: FlatfileTemplateProperty =
           getProperties(currentValue);
@@ -146,6 +164,13 @@ const getTemplateFields = (
   return newFields;
 };
 
+const getRequiredFields = (
+  fields: InputFieldGQL[]
+): string[] => {
+  const nonNullFields = fields.filter(({ type }) => type.kind === "NON_NULL").map(({ name }) => name);
+  return nonNullFields;
+}
+
 const getObjectInput = (args: InputValue[]) => {
   const [first] = args;
   return args.find((input) => input.type.kind === "INPUT_OBJECT") || first;
@@ -158,17 +183,16 @@ const hasObjectInput = (args: InputValue[]) => {
 
 const parseInputsFromMutations = (
   unparsedList: MutationsListGQL
-): {
-  objectType: string;
-  inputObject: string;
-  inputFields: FlatfileTemplateProperties;
-}[] => {
+): ParsedGQLObjects => {
   return unparsedList.map(({ type, args }) => {
     const inputValue = getObjectInput(args);
     return {
       objectType: type?.name,
-      inputObject: inputValue.type.name,
-      inputFields: getTemplateFields(inputValue.type.inputFields),
+      input: {
+        name: inputValue.type.name,
+        fields: getTemplateFields(inputValue.type.inputFields),
+        requiredFields: getRequiredFields(inputValue.type.inputFields),
+      }
     };
   });
 };
@@ -186,18 +210,12 @@ const filterUpdateMutations = (mutations: MutationsListGQL) =>
   );
 
 const parseData = (mutations: MutationsListGQL) => {
-  const filterdMutations = filterCreateMutations(mutations);
-  return parseInputsFromMutations(filterdMutations);
+  const filteredMutations = filterCreateMutations(mutations);
+  return parseInputsFromMutations(filteredMutations);
 };
 
 export const useSkylarkSchema = () => {
-  const [data, setData] = useState<
-    {
-      objectType: string;
-      inputObject: string;
-      inputFields: FlatfileTemplateProperties;
-    }[]
-  >([]);
+  const [data, setData] = useState<ParsedGQLObjects>([]);
 
   useEffect(() => {
     graphQLClient
