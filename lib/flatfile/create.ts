@@ -2,9 +2,9 @@ import { GraphQLClient, gql } from "graphql-request";
 import { FLATFILE_ENV, FLATFILE_GRAPHQL_URL, FLATFILE_TEAM } from "../../constants";
 import { FlatfileTemplate } from "../../interfaces/template";
 
-const environmentId = FLATFILE_ENV.PROD;
+const environmentId = FLATFILE_ENV.TEST;
 
-const createGraphQLClient = (token: string) => new GraphQLClient(FLATFILE_GRAPHQL_URL, {
+export const createGraphQLClient = (token: string) => new GraphQLClient(FLATFILE_GRAPHQL_URL, {
   headers: {
     "Authorization": `Bearer ${token}`,
   },

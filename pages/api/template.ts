@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import jwt from "jsonwebtoken"
-import { createTemplate, createEmbed } from '../../lib/flatfile/template';
+import { createTemplate, createEmbed } from '../../lib/flatfile/create';
 import { FlatfileTemplate } from '../../interfaces/template';
 import { exchangeFlatfileAccessKey } from '../../lib/flatfile/auth';
 
