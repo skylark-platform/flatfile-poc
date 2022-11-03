@@ -29,12 +29,13 @@ const openFlatfile = async(embedId: string, importToken: string) => {
   });
 }
 
-const startFlatfileImport = async(name: string, template: FlatfileTemplate) => {
+const startFlatfileImport = async(name: string, template: FlatfileTemplate, options: { language?: boolean }) => {
   const res = await fetch("/api/template", {
     method: "POST",
     body: JSON.stringify({
       name,
-      template
+      template,
+      options,
     })
   })
 
@@ -71,7 +72,7 @@ const Template: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="w-screen mt-10  flex justify-center flex-col max-w-3xl">
+      <main className="w-screen mt-10  flex justify-center flex-col max-w-4xl">
         <div className="flex flex-row justify-between gap-4 items-center">
           <div>
             <p>Select your Skylark object type.</p>
@@ -94,13 +95,20 @@ const Template: NextPage = () => {
               ))}
             </select>
           </div>
-          <div className="flex justify-center items-start gap-4 w-20">
+          <div className="flex justify-center items-start gap-4 w-48 flex-col">
             <button
-              className="p-2 px-5 text-white bg-[#226dff] rounded disabled:bg-gray-300"
+              className="p-2 px-2 text-white bg-[#226dff] rounded disabled:bg-gray-300 w-full"
               disabled={objectType === "" || !objectInput}
-              onClick={() => objectInput && startFlatfileImport(objectType, flatfileTemplate)}
+              onClick={() => objectInput && startFlatfileImport(objectType, flatfileTemplate, {})}
             >
               {`Import`}
+            </button>
+            <button
+              className="p-2 px-2 bg-white border-2 border-[#226dff] text-[#226dff] rounded w-full disabled:border-gray-300 disabled:text-gray-300"
+              disabled={objectType === "" || !objectInput}
+              onClick={() => objectInput && startFlatfileImport(objectType, flatfileTemplate, { language: true })}
+            >
+              {`Import with language`}
             </button>
           </div>
         </div>

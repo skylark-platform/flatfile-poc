@@ -2,14 +2,24 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import jwt from "jsonwebtoken"
 import { createTemplate, createEmbed, updateTemplate, updateEmbed } from '../../lib/flatfile/mutations';
-import { FlatfileTemplate } from '../../interfaces/template';
+import { FlatfileTemplate, FlatfileTemplatePropertyEnum } from '../../interfaces/template';
 import { exchangeFlatfileAccessKey } from '../../lib/flatfile/auth';
 import { getEmbeds, getTemplates } from '../../lib/flatfile/get';
 import { SAAS_ACCOUNT_ID } from '../../constants';
+import { languageCodes } from '../../languageCodes';
 
 interface Data {
   embedId: string
   token: string
+}
+
+const languageChoice: FlatfileTemplatePropertyEnum = {
+  type: "string",
+  label: "Language",
+  default: "en-gb",
+  description: "The language code",
+  enum: languageCodes,
+  enumLabel: languageCodes
 }
 
 export default async function handler(
@@ -34,6 +44,8 @@ export default async function handler(
     return res.status(400).send("Invalid request body")
   }
 
+  const options = (body.options || {}) as { language?: boolean }
+
   const org = { id: 39821, name: "Skylark" };
   let user = { id: 0, name: "", email: "" };
   let flatfileAccessToken = "";
@@ -56,7 +68,11 @@ export default async function handler(
   }
 
   const name = `${body.name as string}-${SAAS_ACCOUNT_ID}`.toLowerCase();
-  const requestTemplate = body.template as FlatfileTemplate;
+  const bodyTemplate = body.template as FlatfileTemplate;
+
+  // When language is enabled, it should be the first column in Flatfile
+  const templateWithLanguage = { ...bodyTemplate, properties: { language: languageChoice, ...bodyTemplate.properties }, required: ["language", ...bodyTemplate.required] };
+  const requestTemplate: FlatfileTemplate = options.language ? templateWithLanguage : bodyTemplate;
 
   const foundTemplates = await getTemplates(flatfileAccessToken, name);
   const foundEmbeds = await getEmbeds(flatfileAccessToken, name);
