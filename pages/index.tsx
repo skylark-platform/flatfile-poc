@@ -5,26 +5,6 @@ import { useState } from "react";
 import { useSkylarkSchema } from "../hooks/useSkylarkSchema";
 import { FlatfileTemplate } from "../interfaces/template";
 
-const template: FlatfileTemplate = {
-  type: "object",
-  properties: {
-    name: {
-      label: "Name",
-      type: "string",
-    },
-    slug: {
-      label: "Slug",
-      type: "string",
-    },
-    skylarkers: {
-      label: "Skylarkers",
-      type: "boolean"
-    }
-  },
-  required: ["name"],
-  unique: [],
-}
-
 const openFlatfile = async(embedId: string, importToken: string) => {
   const theme: ITheme = {
     loadingText: "Creating your records in Skylark...",
