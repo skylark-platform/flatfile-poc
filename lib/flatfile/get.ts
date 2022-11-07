@@ -1,6 +1,6 @@
-import { gql } from "graphql-request"
-import { ACTIVE_FLATFILE_ENV, FLATFILE_TEAM } from "../../constants"
-import { createFlatfileGraphQLClient } from "../graphqlClient"
+import { gql } from "graphql-request";
+import { ACTIVE_FLATFILE_ENV, FLATFILE_TEAM } from "../../constants";
+import { createFlatfileGraphQLClient } from "../graphqlClient";
 
 const getEmbedsQuery = gql`
   query(
@@ -28,7 +28,7 @@ const getEmbedsQuery = gql`
       }
     }
   }
-`
+`;
 
 const getTemplatesQuery = gql`
   query(
@@ -52,20 +52,49 @@ const getTemplatesQuery = gql`
       }
     }
   }
-`
+`;
 
-export const getEmbeds = async(token: string, searchQuery = "") => {
+const getOriginalDataQuery = gql`
+  query ($batchId: UUID!) {
+    getOriginalData(batchId: $batchId) {
+      dataHeaders
+      dataRows
+    }
+  }
+`;
+
+export const getEmbeds = async (token: string, searchQuery = "") => {
   const graphQLClient = createFlatfileGraphQLClient(token);
-  const data = await graphQLClient.request<{ getEmbeds: { data: { name: string, id: string, schemas: { id: string, name: string }[] }[] } }>(getEmbedsQuery, {
-    searchQuery
-  })
+  const data = await graphQLClient.request<{
+    getEmbeds: {
+      data: {
+        name: string;
+        id: string;
+        schemas: { id: string; name: string }[];
+      }[];
+    };
+  }>(getEmbedsQuery, {
+    searchQuery,
+  });
   return data.getEmbeds.data;
-}
+};
 
-export const getTemplates = async(token: string, searchQuery = "") => {
+export const getTemplates = async (token: string, searchQuery = "") => {
   const graphQLClient = createFlatfileGraphQLClient(token);
-  const data = await graphQLClient.request<{ getSchemas: { data: { name: string, id: string }[] } }>(getTemplatesQuery, {
-    searchQuery
-  })
+  const data = await graphQLClient.request<{
+    getSchemas: { data: { name: string; id: string }[] };
+  }>(getTemplatesQuery, {
+    searchQuery,
+  });
   return data.getSchemas.data;
-}
+};
+
+export const getOriginalData = async (token: string, batchId: string) => {
+  console.log("heeere");
+  const graphQLClient = createFlatfileGraphQLClient(token);
+  const data = await graphQLClient.request<any>(getOriginalDataQuery, {
+    batchId,
+  });
+  console.log("data ####", data);
+  return data;
+};
