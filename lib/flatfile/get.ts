@@ -54,11 +54,10 @@ const getTemplatesQuery = gql`
   }
 `;
 
-const getOriginalDataQuery = gql`
+const getFinalDatabaseViewQuery = gql`
   query ($batchId: UUID!) {
-    getOriginalData(batchId: $batchId) {
-      dataHeaders
-      dataRows
+    getFinalDatabaseView(batchId: $batchId, limit: 1000000) {
+      rows
     }
   }
 `;
@@ -89,12 +88,33 @@ export const getTemplates = async (token: string, searchQuery = "") => {
   return data.getSchemas.data;
 };
 
-export const getOriginalData = async (token: string, batchId: string) => {
-  console.log("heeere");
+export const getFinalDatabaseView = async (token: string, batchId: string) => {
   const graphQLClient = createFlatfileGraphQLClient(token);
-  const data = await graphQLClient.request<any>(getOriginalDataQuery, {
+  return await graphQLClient.request<{
+    getFinalDatabaseView: {
+      rows: {
+        id: number;
+        status: string;
+        valid: boolean;
+        data: {
+          data_source_id: number | null;
+          external_id: number | null;
+          name: string;
+          slug: string;
+          name_sort: null;
+          alias: string;
+          abbreviation: string;
+          gender: string;
+          place_of_birth: string;
+          date_of_birth: string;
+          bio_short: string;
+          bio_medium: string;
+          bio_long: string;
+        };
+        info: [];
+      }[];
+    };
+  }>(getFinalDatabaseViewQuery, {
     batchId,
   });
-  console.log("data ####", data);
-  return data;
 };

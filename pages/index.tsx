@@ -4,8 +4,6 @@ import Head from "next/head";
 import { useState } from "react";
 import { useSkylarkSchema } from "../hooks/useSkylarkSchema";
 import { FlatfileTemplate } from "../interfaces/template";
-import { exchangeFlatfileAccessKey } from "../lib/flatfile/auth";
-import { getOriginalData } from "../lib/flatfile/get";
 
 const template: FlatfileTemplate = {
   type: "object",
@@ -26,40 +24,6 @@ const template: FlatfileTemplate = {
   required: ["name"],
   unique: [],
 };
-
-async function getFromFlatFile(batchId: string) {
-  const org = { id: 39821, name: "Skylark" };
-  let user = { id: 0, name: "", email: "" };
-  let flatfileAccessToken = "";
-
-  if (!process.env.FLATFILE_ACCESS_KEY_ID || !process.env.FLATFILE_SECRET_KEY) {
-    console.log("ups");
-    return;
-  }
-
-  try {
-    const data = await exchangeFlatfileAccessKey(
-      process.env.FLATFILE_ACCESS_KEY_ID,
-      process.env.FLATFILE_SECRET_KEY
-    );
-
-    user = {
-      id: data.user.id,
-      name: data.user.name,
-      email: data.user.email,
-    };
-    flatfileAccessToken = data.accessToken;
-
-    if (flatfileAccessToken) {
-      console.log(" herree ####", flatfileAccessToken);
-      getOriginalData(flatfileAccessToken, batchId);
-    }
-
-    // return data.accessToken;
-  } catch (err) {
-    return;
-  }
-}
 
 const openFlatfile = async (embedId: string, importToken: string) => {
   const theme: ITheme = {
@@ -85,13 +49,7 @@ const openFlatfile = async (embedId: string, importToken: string) => {
 
       if (batchId) {
         console.log("batch", batchId);
-        /*
-        getOriginalData(
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWJlZCI6IjFmNDA4ZTRkLTJmNzgtNDI1YS05ODRjLTJkMjFmZTQxNmU2ZiIsInVzZXIiOnsiaWQiOjQyMDM1LCJuYW1lIjoiU2t5bGFyayBTdXBwb3J0IiwiZW1haWwiOiJzdXBwb3J0QHNreWxhcmtwbGF0Zm9ybS5jb20ifSwib3JnIjp7ImlkIjozOTgyMSwibmFtZSI6IlNreWxhcmsifSwiaWF0IjoxNjY3NDk3MzYxfQ.R6T2FI01SBkBQnfKPlyOTWwaSQMJRAJou2Jkwwe6YiQ",
-          batchId
-        );
-        getFromFlatFile(batchId);
-        */
+        // TODO send batchId to... ?
       }
     },
   });
