@@ -83,12 +83,12 @@ const query = gql`
 `;
 
 export const useSkylarkProperties = () => {
-  const [data, setData] = useState<ParsedGQLObjects>([]);
+  const [data, setData] = useState<any>([]);
+
+  console.log("coool", data);
 
   useEffect(() => {
-    skylarkGraphQLClient
-      .request(query, {})
-      .then((data) => setData(data.__schema?.mutationType?.fields));
+    skylarkGraphQLClient.request(query, {}).then((data) => setData(data));
   }, []);
 
   return data;
