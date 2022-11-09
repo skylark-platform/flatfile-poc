@@ -13,13 +13,57 @@ import { FlatfileTemplate } from "../../interfaces/template";
 import { exchangeFlatfileAccessKey } from "../../lib/flatfile/auth";
 import { getEmbeds, getTemplates } from "../../lib/flatfile/get";
 import { SAAS_ACCOUNT_ID } from "../../constants";
+import { getSkylarkProperties } from "../../hooks/useSkylarkProperties";
 
 interface Data {
   embedId: string;
   token: string;
 }
 
-const rowsParser = (rows: any) => {
+interface Row {
+  id: number;
+  status: string;
+  valid: boolean;
+  data: {
+    [key: string]: string | boolean | null;
+  };
+  info: [];
+}
+
+const propertiesToRemove = (
+  originalFields: { [key: string]: any },
+  properties: string[]
+) => {
+  return Object.keys(originalFields).filter((property) =>
+    properties.includes(property)
+  );
+};
+
+export const getValidFields = (
+  fields: {
+    [key: string]: any;
+  },
+  validProperties: string[]
+): { [key: string]: any } => {
+  const validObjectFields = validProperties.filter((property) =>
+    Object.keys(fields).includes(property)
+  );
+
+  const validFields = validObjectFields.reduce((obj, property) => {
+    return {
+      ...obj,
+      [property]: obj[property],
+    };
+  }, {} as { [key: string]: string | number | boolean });
+
+  return validFields;
+};
+
+const parseDataToImport = (rows: Row[], properties: any) => {
+  const validProperties = properties.map((p) => p.name);
+
+  const validFields = getValidFields(rows, validProperties);
+  return validFields;
   // TODO get valid props
   // TODO match from rows
   // TODO insert
@@ -69,10 +113,31 @@ export default async function handler(
     "2ca28f49-bc3d-41a4-b40a-06ef57cea65d"
   );
 
-  return res.status(200).send(`James made it work ${JSON.stringify(data)}`);
-  // }
+  // DEPRECATED ?
+  /*  
+//TODO get inputName
+  const properties = await getSkylarkProperties("");
 
-  /// TODO
+  const dataToImport = parseDataToImport(
+    data?.getFinalDatabaseView?.rows,
+    properties
+  );
+*/
+  const goodRows = data?.getFinalDatabaseView?.rows.map(
+    (item) => item.status === "accepted" && item.valid
+  );
 
-  return res.status(200).send(`James made it work - second`);
+  // check status and valid
+
+  // TODO dynamic name
+  // MUTATION
+  /*
+mutation MyMutation {
+    createPerson {
+      bio_long
+    }
+  }
+*/
+
+  return res.status(200).send(`James made it work ${JSON.stringify(goodRows)}`);
 }

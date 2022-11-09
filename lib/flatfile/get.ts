@@ -97,19 +97,7 @@ export const getFinalDatabaseView = async (token: string, batchId: string) => {
         status: string;
         valid: boolean;
         data: {
-          data_source_id: number | null;
-          external_id: number | null;
-          name: string;
-          slug: string;
-          name_sort: null;
-          alias: string;
-          abbreviation: string;
-          gender: string;
-          place_of_birth: string;
-          date_of_birth: string;
-          bio_short: string;
-          bio_medium: string;
-          bio_long: string;
+          [key: string]: any;
         };
         info: [];
       }[];

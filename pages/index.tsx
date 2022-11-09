@@ -62,7 +62,7 @@ const startFlatfileImport = async (
 
 const Template: NextPage = () => {
   const schemaObjects = useSkylarkSchema();
-  const test = useSkylarkProperties();
+  const test = useSkylarkProperties(); // TODO
   const options = schemaObjects.map(({ objectType }) => objectType).sort();
 
   const [objectType, setObjectType] = useState("");

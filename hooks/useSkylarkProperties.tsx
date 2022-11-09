@@ -1,61 +1,8 @@
 import { useEffect, useState } from "react";
 import { gql } from "graphql-request";
 import { skylarkGraphQLClient } from "../lib/graphqlClient";
-import {
-  FlatfileTemplateProperties,
-  FlatfileTemplateProperty,
-  FlatfileTemplatePropertyBoolean,
-  FlatfileTemplatePropertyEnum,
-  FlatfileTemplatePropertyNumber,
-  FlatfileTemplatePropertyString,
-} from "../interfaces/template";
 
-type Kind = "SCALAR" | "LIST" | "NON_NULL" | "ENUM" | "INPUT_OBJECT";
-
-type TypeGQL = {
-  kind: Kind | null;
-  name: string;
-  description: string | null;
-  enumValues: { name: string }[] | null;
-  inputFields: InputFieldGQL[];
-  ofType: Pick<TypeGQL, "name" | "kind"> | null;
-};
-
-type InputValue = {
-  name: string;
-  description: string;
-  type: Pick<TypeGQL, "name" | "kind" | "inputFields" | "description">;
-  defaultValue: string;
-};
-
-type InputFieldGQL = {
-  name: string;
-  type: Pick<
-    TypeGQL,
-    "name" | "kind" | "enumValues" | "description" | "ofType"
-  >;
-};
-
-type MutationsListGQL = {
-  name: string;
-  args: InputValue[];
-  type: {
-    name: string;
-    kind: Kind | null;
-    description: string | null;
-    fields: { name: string }[] | null;
-    ofType: string;
-  };
-}[];
-
-type ParsedGQLObjects = {
-  objectType: string;
-  input: {
-    name: string;
-    fields: FlatfileTemplateProperties;
-    requiredFields: string[];
-  };
-}[];
+import { InputFieldGQL } from "./types";
 
 const query = gql`
   {
@@ -82,13 +29,20 @@ const query = gql`
   }
 `;
 
+export const getSkylarkProperties = async (input: string) => {
+  const data = await skylarkGraphQLClient.request(query, {});
+  return data?.__type?.inputFields;
+};
+
 export const useSkylarkProperties = () => {
-  const [data, setData] = useState<any>([]);
+  const [data, setData] = useState<InputFieldGQL[]>([]);
 
   console.log("coool", data);
 
   useEffect(() => {
-    skylarkGraphQLClient.request(query, {}).then((data) => setData(data));
+    skylarkGraphQLClient
+      .request(query, {})
+      .then((data) => setData(data?.__type?.inputFields));
   }, []);
 
   return data;

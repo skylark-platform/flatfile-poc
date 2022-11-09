@@ -10,49 +10,13 @@ import {
   FlatfileTemplatePropertyString,
 } from "../interfaces/template";
 
-type Kind = "SCALAR" | "LIST" | "NON_NULL" | "ENUM" | "INPUT_OBJECT"
-
-type TypeGQL = {
-  kind: Kind | null;
-  name: string;
-  description: string | null;
-  enumValues: { name: string }[] | null;
-  inputFields: InputFieldGQL[];
-  ofType: Pick<TypeGQL, "name" | "kind"> | null;
-};
-
-type InputValue = {
-  name: string;
-  description: string;
-  type: Pick<TypeGQL, "name" | "kind" | "inputFields" | "description">;
-  defaultValue: string;
-};
-
-type InputFieldGQL = {
-  name: string;
-  type: Pick<TypeGQL, "name" | "kind" | "enumValues" | "description" | "ofType">;
-};
-
-type MutationsListGQL = {
-  name: string;
-  args: InputValue[];
-  type: {
-    name: string;
-    kind: Kind | null;
-    description: string | null;
-    fields: { name: string }[] | null;
-    ofType: string;
-  };
-}[];
-
-type ParsedGQLObjects = {
-  objectType: string;
-  input: {
-    name: string,
-    fields: FlatfileTemplateProperties,
-    requiredFields: string[]
-  }
-}[]
+import {
+  InputFieldGQL,
+  InputValue,
+  Kind,
+  MutationsListGQL,
+  ParsedGQLObjects,
+} from "./types";
 
 const supportedKinds: Kind[] = ["ENUM", "SCALAR", "NON_NULL"];
 
@@ -118,7 +82,10 @@ const getProperties = (field: InputFieldGQL) => {
   }
 
   // When the type is NON_NULL, the type name is in ofType
-  const fieldName = field.type.kind === "NON_NULL" && field.type.ofType ? field.type.ofType.name : field.type.name;
+  const fieldName =
+    field.type.kind === "NON_NULL" && field.type.ofType
+      ? field.type.ofType.name
+      : field.type.name;
 
   switch (fieldName) {
     case "Int":
@@ -164,12 +131,12 @@ const getTemplateFields = (
   return newFields;
 };
 
-const getRequiredFields = (
-  fields: InputFieldGQL[]
-): string[] => {
-  const nonNullFields = fields.filter(({ type }) => type.kind === "NON_NULL").map(({ name }) => name);
+const getRequiredFields = (fields: InputFieldGQL[]): string[] => {
+  const nonNullFields = fields
+    .filter(({ type }) => type.kind === "NON_NULL")
+    .map(({ name }) => name);
   return nonNullFields;
-}
+};
 
 const getObjectInput = (args: InputValue[]) => {
   const [first] = args;
@@ -192,7 +159,7 @@ const parseInputsFromMutations = (
         name: inputValue.type.name,
         fields: getTemplateFields(inputValue.type.inputFields),
         requiredFields: getRequiredFields(inputValue.type.inputFields),
-      }
+      },
     };
   });
 };
