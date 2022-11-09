@@ -7,8 +7,6 @@ export type FlatfileTemplatePropertyTypes =
 interface FlatfileTemplatePropertyValue {
   type: FlatfileTemplatePropertyTypes;
   label: string;
-  // required?: boolean; // Breaks Flatfile
-  // unique?: boolean; // Breaks Flatfile
   default?: string;
   description?: string;
 }
