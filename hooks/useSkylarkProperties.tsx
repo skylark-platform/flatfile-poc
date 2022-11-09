@@ -6,7 +6,7 @@ import { InputFieldGQL } from "./types";
 
 const query = gql`
   {
-    __type(name: "EpisodeInput") {
+    __type(name: "PersonInput") {
       name
       kind
       description

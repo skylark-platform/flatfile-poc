@@ -14,13 +14,15 @@ import { exchangeFlatfileAccessKey } from "../../lib/flatfile/auth";
 import { getEmbeds, getTemplates } from "../../lib/flatfile/get";
 import { SAAS_ACCOUNT_ID } from "../../constants";
 import { getSkylarkProperties } from "../../hooks/useSkylarkProperties";
+import { jsonToGraphQLQuery } from "json-to-graphql-query";
+import { skylarkGraphQLClient } from "../../lib/graphqlClient";
 
 interface Data {
   embedId: string;
   token: string;
 }
 
-interface Row {
+interface FlatfileRow {
   id: number;
   status: string;
   valid: boolean;
@@ -29,6 +31,75 @@ interface Row {
   };
   info: [];
 }
+
+export type GraphQLMediaObjectTypes =
+  | "Brand"
+  | "Season"
+  | "Episode"
+  | "Movie"
+  | "Asset";
+
+export type GraphQLObjectTypes =
+  | GraphQLMediaObjectTypes
+  | "Theme"
+  | "Genre"
+  | "Rating"
+  | "Person"
+  | "Role"
+  | "Tag"
+  | "Credit"
+  | "Set"
+  | "Dimension"
+  | "DimensionValue"
+  | "Availability"
+  | "Image";
+
+export const createSkylarkObjects = async (
+  objectType: GraphQLObjectTypes,
+  flatfileBatchId: string,
+  flatfileRows: FlatfileRow[]
+): Promise<any> => {
+  const method = `create${objectType}`;
+  const mutationPrefix = `${method}_${flatfileBatchId}`.replaceAll("-", "_");
+
+  const operations = flatfileRows.reduce((previousOperations, { id, data }) => {
+    const filteredData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v != null)
+    );
+
+    const operation = {
+      __aliasFor: method,
+      __args: {
+        [objectType.toLowerCase()]: filteredData,
+      },
+      uid: true,
+      external_id: true,
+    };
+
+    const updatedOperations = {
+      ...previousOperations,
+      [`${mutationPrefix}_${id}`]: {
+        ...operation,
+      },
+    };
+    return updatedOperations;
+  }, {} as { [key: string]: object });
+
+  const mutation = {
+    mutation: {
+      __name: mutationPrefix,
+      ...operations,
+    },
+  };
+
+  const graphQLMutation = jsonToGraphQLQuery(mutation);
+
+  const data = await skylarkGraphQLClient.request<{
+    [key: string]: { uid: string; external_id: string };
+  }>(graphQLMutation);
+
+  return data;
+};
 
 const propertiesToRemove = (
   originalFields: { [key: string]: any },
@@ -57,16 +128,6 @@ export const getValidFields = (
   }, {} as { [key: string]: string | number | boolean });
 
   return validFields;
-};
-
-const parseDataToImport = (rows: Row[], properties: any) => {
-  const validProperties = properties.map((p) => p.name);
-
-  const validFields = getValidFields(rows, validProperties);
-  return validFields;
-  // TODO get valid props
-  // TODO match from rows
-  // TODO insert
 };
 
 export default async function handler(
@@ -106,38 +167,14 @@ export default async function handler(
     return res.status(500).send("Error exchanging Flatfile token");
   }
 
-  // if (flatfileAccessToken) {
-  console.log(" herree ####", flatfileAccessToken);
-  const data = await getFinalDatabaseView(
-    flatfileAccessToken,
-    "2ca28f49-bc3d-41a4-b40a-06ef57cea65d"
-  );
-
-  // DEPRECATED ?
-  /*  
-//TODO get inputName
-  const properties = await getSkylarkProperties("");
-
-  const dataToImport = parseDataToImport(
-    data?.getFinalDatabaseView?.rows,
-    properties
-  );
-*/
-  const goodRows = data?.getFinalDatabaseView?.rows.map(
+  const batchId = "d863b4f1-866e-4b10-ba95-766a68a8bf6a";
+  const data = await getFinalDatabaseView(flatfileAccessToken, batchId);
+  const flatfileRows = data?.getFinalDatabaseView?.rows.filter(
     (item) => item.status === "accepted" && item.valid
   );
+  const skylarkObjects = await createSkylarkObjects("Episode", batchId, [
+    flatfileRows[0],
+  ]);
 
-  // check status and valid
-
-  // TODO dynamic name
-  // MUTATION
-  /*
-mutation MyMutation {
-    createPerson {
-      bio_long
-    }
-  }
-*/
-
-  return res.status(200).send(`James made it work ${JSON.stringify(goodRows)}`);
+  return res.status(200).send(skylarkObjects);
 }
