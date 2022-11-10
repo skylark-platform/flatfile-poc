@@ -109,6 +109,12 @@ export default async function handler(
     return res.status(501).end();
   }
 
+  if(!req.body) {
+    return res.status(400).send("Invalid request body")
+  }
+
+  const body = JSON.parse(req.body)
+
   if (!process.env.FLATFILE_ACCESS_KEY_ID || !process.env.FLATFILE_SECRET_KEY) {
     return res
       .status(500)
@@ -138,7 +144,7 @@ export default async function handler(
     return res.status(500).send("Error exchanging Flatfile token");
   }
 
-  const { batchId, objectType } = req.body;
+  const { batchId, objectType } = body;
   if (!batchId || !objectType) {
     return res.status(500).send("batchId and objectType are mandatory");
   }
