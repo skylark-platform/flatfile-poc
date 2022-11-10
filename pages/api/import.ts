@@ -6,20 +6,11 @@ import { exchangeFlatfileAccessKey } from "../../lib/flatfile/auth";
 import { getSkylarkProperties } from "../../lib/getSkylarkProperties";
 import { skylarkGraphQLClient } from "../../lib/graphqlClient";
 import { GraphQLObjectTypes } from "../../types/gqlTypes";
+import { FlatfileRow } from "../../types/flatfileTypes";
 
 interface Data {
   embedId: string;
   token: string;
-}
-
-interface FlatfileRow {
-  id: number;
-  status: string;
-  valid: boolean;
-  data: {
-    [key: string]: string | boolean | null;
-  };
-  info: [];
 }
 
 export const createSkylarkObjects = async (
