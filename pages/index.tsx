@@ -6,7 +6,21 @@ import { useState } from "react";
 import { useSkylarkSchema } from "../hooks/useSkylarkSchema";
 import { FlatfileTemplate } from "../interfaces/template";
 
-const openFlatfile = async (embedId: string, importToken: string) => {
+const importToSkylark = async(batchId: string, objectType: string) => {
+  const res = await  fetch("/api/import", {
+    method: "POST",
+    body: JSON.stringify({
+      batchId,
+      objectType,
+    }),
+  })
+
+  const data = await res.json();
+
+  console.log(data);
+}
+
+const openFlatfile = async (embedId: string, importToken: string, objectType: string) => {
   const theme: ITheme = {
     loadingText: "Creating your records in Skylark...",
     displayName: "Skylark",
@@ -30,7 +44,8 @@ const openFlatfile = async (embedId: string, importToken: string) => {
 
       if (batchId) {
         console.log("batch", batchId);
-        // TODO send batchId to... ?
+        // TODO improve how the import callback is called
+        void importToSkylark(batchId, objectType);
       }
     },
   });
@@ -39,6 +54,7 @@ const openFlatfile = async (embedId: string, importToken: string) => {
 const startFlatfileImport = async (
   name: string,
   template: FlatfileTemplate,
+  objectType: string,
   options: { language?: boolean }
 ) => {
   const res = await fetch("/api/template", {
@@ -57,7 +73,7 @@ const startFlatfileImport = async (
 
   console.log(data);
 
-  await openFlatfile(data.embedId, data.token);
+  await openFlatfile(data.embedId, data.token, objectType);
 };
 
 const Template: NextPage = () => {
@@ -119,7 +135,7 @@ const Template: NextPage = () => {
               disabled={objectType === "" || !objectInput}
               onClick={() =>
                 objectInput &&
-                startFlatfileImport(objectType, flatfileTemplate, {})
+                startFlatfileImport(objectType, flatfileTemplate, objectType, {})
               }
             >
               {`Import`}
@@ -129,7 +145,7 @@ const Template: NextPage = () => {
               disabled={objectType === "" || !objectInput}
               onClick={() =>
                 objectInput &&
-                startFlatfileImport(objectType, flatfileTemplate, {
+                startFlatfileImport(objectType, flatfileTemplate, objectType, {
                   language: true,
                 })
               }

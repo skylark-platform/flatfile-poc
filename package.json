@@ -14,6 +14,8 @@
   "dependencies": {
     "@flatfile/configure": "^0.4.1",
     "@flatfile/sdk": "^2.1.2",
+    "@fontsource/inter": "^4.5.14",
+    "@fontsource/work-sans": "^4.5.12",
     "flatfile": "^3.0.3",
     "graphql-request": "^5.0.0",
     "json-to-graphql-query": "^2.2.4",

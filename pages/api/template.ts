@@ -71,9 +71,7 @@ export default async function handler(
   const bodyTemplate = body.template as FlatfileTemplate;
 
   // When language is enabled, it should be the first column in Flatfile
-  const templateWithLanguage = { ...bodyTemplate, properties: { language: languageChoice, ...bodyTemplate.properties }, required: ["language", ...bodyTemplate.required] };
-  const requestTemplate: FlatfileTemplate = options.language ? templateWithLanguage : bodyTemplate;
-
+  const templateWithLanguage = { ...bodyTemplate, properties: { language: languageChoice, ...bodyTemplate.properties }, required: ["language", ...bodyTemplate.required] };  const requestTemplate: FlatfileTemplate = options.language ? templateWithLanguage : bodyTemplate;
   const foundTemplates = await getTemplates(flatfileAccessToken, name);
   const foundEmbeds = await getEmbeds(flatfileAccessToken, name);
 
