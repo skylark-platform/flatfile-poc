@@ -1,21 +1,11 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import jwt from "jsonwebtoken";
+import { jsonToGraphQLQuery } from "json-to-graphql-query";
 
 import { getFinalDatabaseView } from "../../lib/flatfile/get";
-import {
-  createTemplate,
-  createEmbed,
-  updateTemplate,
-  updateEmbed,
-} from "../../lib/flatfile/mutations";
-import { FlatfileTemplate } from "../../interfaces/template";
 import { exchangeFlatfileAccessKey } from "../../lib/flatfile/auth";
-import { getEmbeds, getTemplates } from "../../lib/flatfile/get";
-import { SAAS_ACCOUNT_ID } from "../../constants";
-import { getSkylarkProperties } from "../../hooks/useSkylarkProperties";
-import { jsonToGraphQLQuery } from "json-to-graphql-query";
+import { getSkylarkProperties } from "../../lib/getSkylarkProperties";
 import { skylarkGraphQLClient } from "../../lib/graphqlClient";
+import { GraphQLObjectTypes } from "../../types/gqlTypes";
 
 interface Data {
   embedId: string;
@@ -32,28 +22,6 @@ interface FlatfileRow {
   info: [];
 }
 
-export type GraphQLMediaObjectTypes =
-  | "Brand"
-  | "Season"
-  | "Episode"
-  | "Movie"
-  | "Asset";
-
-export type GraphQLObjectTypes =
-  | GraphQLMediaObjectTypes
-  | "Theme"
-  | "Genre"
-  | "Rating"
-  | "Person"
-  | "Role"
-  | "Tag"
-  | "Credit"
-  | "Set"
-  | "Dimension"
-  | "DimensionValue"
-  | "Availability"
-  | "Image";
-
 export const createSkylarkObjects = async (
   objectType: GraphQLObjectTypes,
   flatfileBatchId: string,
@@ -62,7 +30,7 @@ export const createSkylarkObjects = async (
   const method = `create${objectType}`;
   const mutationPrefix = `${method}_${flatfileBatchId}`.replaceAll("-", "_");
 
-  const dateProperties = await getSkylarkProperties("Person").then((data) =>
+  const dateProperties = await getSkylarkProperties(objectType).then((data) =>
     data
       .filter((property) => property.type.name === "AWSDateTime")
       .map((property) => property.name)
@@ -111,15 +79,6 @@ export const createSkylarkObjects = async (
   }>(graphQLMutation);
 
   return data;
-};
-
-const propertiesToRemove = (
-  originalFields: { [key: string]: any },
-  properties: string[]
-) => {
-  return Object.keys(originalFields).filter((property) =>
-    properties.includes(property)
-  );
 };
 
 export const getValidFields = (
@@ -179,13 +138,17 @@ export default async function handler(
     return res.status(500).send("Error exchanging Flatfile token");
   }
 
-  const batchId = "2ca28f49-bc3d-41a4-b40a-06ef57cea65d";
+  const { batchId, objectType } = req.body;
+  if (!batchId || !objectType) {
+    return res.status(500).send("batchId and objectType are mandatory");
+  }
+
   const data = await getFinalDatabaseView(flatfileAccessToken, batchId);
   const flatfileRows = data?.getFinalDatabaseView?.rows.filter(
     (item) => item.status === "accepted" && item.valid
   );
   const skylarkObjects = await createSkylarkObjects(
-    "Person",
+    objectType,
     batchId,
     flatfileRows
   );

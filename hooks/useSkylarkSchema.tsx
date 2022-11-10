@@ -15,8 +15,8 @@ import {
   InputValue,
   Kind,
   MutationsListGQL,
-  ParsedGQLObjects,
-} from "../types/types";
+} from "../types/gqlTypes";
+import { ParsedGQLObjects } from "../types/types";
 
 const supportedKinds: Kind[] = ["ENUM", "SCALAR", "NON_NULL"];
 

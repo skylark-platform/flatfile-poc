@@ -1,11 +1,11 @@
 import { gql } from "graphql-request";
-import { skylarkGraphQLClient } from "../lib/graphqlClient";
+import { skylarkGraphQLClient } from "./graphqlClient";
 
-import { InputFieldGQL } from "../types/types";
+import { InputFieldGQL } from "../types/gqlTypes";
 
 const query = gql`
-  {
-    __type(name: "PersonInput") {
+  query ($objectTypeInput: String!) {
+    __type(name: $objectTypeInput) {
       name
       kind
       description
@@ -29,10 +29,9 @@ const query = gql`
 `;
 
 export const getSkylarkProperties = async (
-  input: string
+  objectType: string
 ): Promise<InputFieldGQL[]> => {
-  const data = await skylarkGraphQLClient.request(query, {});
-
-  console.log("coool", data?.__type?.inputFields);
+  const objectTypeInput = `${objectType}Input`;
+  const data = await skylarkGraphQLClient.request(query, { objectTypeInput });
   return data?.__type?.inputFields;
 };
