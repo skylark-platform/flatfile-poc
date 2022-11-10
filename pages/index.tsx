@@ -2,7 +2,7 @@ import { ITheme } from "@flatfile/sdk";
 import type { NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
-import { useSkylarkProperties } from "../hooks/useSkylarkProperties";
+import { getSkylarkProperties } from "../hooks/useSkylarkProperties";
 import { useSkylarkSchema } from "../hooks/useSkylarkSchema";
 import { FlatfileTemplate } from "../interfaces/template";
 
@@ -62,7 +62,8 @@ const startFlatfileImport = async (
 
 const Template: NextPage = () => {
   const schemaObjects = useSkylarkSchema();
-  const test = useSkylarkProperties(); // TODO
+  getSkylarkProperties("");
+
   const options = schemaObjects.map(({ objectType }) => objectType).sort();
 
   const [objectType, setObjectType] = useState("");

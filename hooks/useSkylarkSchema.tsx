@@ -16,7 +16,7 @@ import {
   Kind,
   MutationsListGQL,
   ParsedGQLObjects,
-} from "./types";
+} from "../types/types";
 
 const supportedKinds: Kind[] = ["ENUM", "SCALAR", "NON_NULL"];
 

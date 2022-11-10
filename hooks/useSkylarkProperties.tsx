@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
 import { gql } from "graphql-request";
 import { skylarkGraphQLClient } from "../lib/graphqlClient";
 
-import { InputFieldGQL } from "./types";
+import { InputFieldGQL } from "../types/types";
 
 const query = gql`
   {
@@ -29,21 +28,11 @@ const query = gql`
   }
 `;
 
-export const getSkylarkProperties = async (input: string) => {
+export const getSkylarkProperties = async (
+  input: string
+): Promise<InputFieldGQL[]> => {
   const data = await skylarkGraphQLClient.request(query, {});
+
+  console.log("coool", data?.__type?.inputFields);
   return data?.__type?.inputFields;
-};
-
-export const useSkylarkProperties = () => {
-  const [data, setData] = useState<InputFieldGQL[]>([]);
-
-  console.log("coool", data);
-
-  useEffect(() => {
-    skylarkGraphQLClient
-      .request(query, {})
-      .then((data) => setData(data?.__type?.inputFields));
-  }, []);
-
-  return data;
 };

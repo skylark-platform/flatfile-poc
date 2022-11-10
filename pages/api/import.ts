@@ -62,15 +62,27 @@ export const createSkylarkObjects = async (
   const method = `create${objectType}`;
   const mutationPrefix = `${method}_${flatfileBatchId}`.replaceAll("-", "_");
 
+  const dateProperties = await getSkylarkProperties("Person").then((data) =>
+    data
+      .filter((property) => property.type.name === "AWSDateTime")
+      .map((property) => property.name)
+  );
+
   const operations = flatfileRows.reduce((previousOperations, { id, data }) => {
     const filteredData = Object.fromEntries(
       Object.entries(data).filter(([_, v]) => v != null)
     );
 
+    const secondFilteredData = Object.fromEntries(
+      Object.entries(filteredData).filter(
+        ([k, v]) => !(dateProperties.includes(k) && v === "")
+      )
+    );
+
     const operation = {
       __aliasFor: method,
       __args: {
-        [objectType.toLowerCase()]: filteredData,
+        [objectType.toLowerCase()]: secondFilteredData,
       },
       uid: true,
       external_id: true,
@@ -167,14 +179,16 @@ export default async function handler(
     return res.status(500).send("Error exchanging Flatfile token");
   }
 
-  const batchId = "d863b4f1-866e-4b10-ba95-766a68a8bf6a";
+  const batchId = "2ca28f49-bc3d-41a4-b40a-06ef57cea65d";
   const data = await getFinalDatabaseView(flatfileAccessToken, batchId);
   const flatfileRows = data?.getFinalDatabaseView?.rows.filter(
     (item) => item.status === "accepted" && item.valid
   );
-  const skylarkObjects = await createSkylarkObjects("Episode", batchId, [
-    flatfileRows[0],
-  ]);
+  const skylarkObjects = await createSkylarkObjects(
+    "Person",
+    batchId,
+    flatfileRows
+  );
 
   return res.status(200).send(skylarkObjects);
 }
