@@ -6,21 +6,28 @@ import { useState } from "react";
 import { useSkylarkSchema } from "../hooks/useSkylarkSchema";
 import { FlatfileTemplate } from "../interfaces/template";
 
-const importToSkylark = async(batchId: string, objectType: string) => {
-  const res = await  fetch("/api/import", {
+const importToSkylark = async (batchId: string, objectType: string) => {
+  const res = await fetch("/api/import", {
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
     body: JSON.stringify({
       batchId,
       objectType,
     }),
-  })
+  });
 
   const data = await res.json();
 
   console.log(data);
-}
+};
 
-const openFlatfile = async (embedId: string, importToken: string, objectType: string) => {
+const openFlatfile = async (
+  embedId: string,
+  importToken: string,
+  objectType: string
+) => {
   const theme: ITheme = {
     loadingText: "Creating your records in Skylark...",
     displayName: "Skylark",
@@ -58,6 +65,9 @@ const startFlatfileImport = async (
   options: { language?: boolean }
 ) => {
   const res = await fetch("/api/template", {
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
     body: JSON.stringify({
       name,
@@ -135,7 +145,12 @@ const Template: NextPage = () => {
               disabled={objectType === "" || !objectInput}
               onClick={() =>
                 objectInput &&
-                startFlatfileImport(objectType, flatfileTemplate, objectType, {})
+                startFlatfileImport(
+                  objectType,
+                  flatfileTemplate,
+                  objectType,
+                  {}
+                )
               }
             >
               {`Import`}

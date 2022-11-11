@@ -7,6 +7,7 @@ import { getSkylarkProperties } from "../../lib/getSkylarkProperties";
 import { skylarkGraphQLClient } from "../../lib/graphqlClient";
 import { GraphQLObjectTypes } from "../../types/gqlTypes";
 import { FlatfileRow } from "../../types/flatfileTypes";
+import { existsSkylarkObject } from "../../lib/getSkylarkObjects";
 
 interface Data {
   embedId: string;
@@ -100,11 +101,11 @@ export default async function handler(
     return res.status(501).end();
   }
 
-  if(!req.body) {
-    return res.status(400).send("Invalid request body")
+  if (!req.body) {
+    return res.status(400).send("Invalid request body");
   }
 
-  const body = JSON.parse(req.body)
+  const { body } = req;
 
   if (!process.env.FLATFILE_ACCESS_KEY_ID || !process.env.FLATFILE_SECRET_KEY) {
     return res
@@ -138,6 +139,10 @@ export default async function handler(
   const { batchId, objectType } = body;
   if (!batchId || !objectType) {
     return res.status(500).send("batchId and objectType are mandatory");
+  }
+  const isObjectValid = await existsSkylarkObject(objectType);
+  if (!isObjectValid) {
+    return res.status(500).send("objectType does not exists in Skylark");
   }
 
   const data = await getFinalDatabaseView(flatfileAccessToken, batchId);
